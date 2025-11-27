@@ -1,5 +1,5 @@
 const express = require("express");
-const steamController = require("../controllers/steamController");
+const steamController = require("../controllers/achievements-controller");
 
 const router = express.Router();
 

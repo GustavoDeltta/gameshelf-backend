@@ -1,12 +1,10 @@
 const express = require("express");
-const authRoutes = require("./modules/auth/routes/authRoutes");
-const steamRoutes = require("./modules/steam-api/routes/steamRoutes");
+const achievementsRoutes = require("./modules/steam-api/routes/achievements-routes");
 
 const app = express();
 
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/steam", steamRoutes);
+app.use("/api/game/achievements", achievementsRoutes);
 
 module.exports = app;
