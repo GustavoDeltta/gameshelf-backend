@@ -1,4 +1,4 @@
-const steamService = require("../services/steamService");
+const steamService = require("../services/achievements-service");
 const { SUPPORTED_LANGUAGES } = require("../../../core/utils/Constants");
 
 async function getPlayerAchievementsByGame(req, res) {
