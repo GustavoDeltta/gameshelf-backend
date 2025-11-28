@@ -4,7 +4,7 @@ const steamController = require("../controllers/achievements-controller");
 const router = express.Router();
 
 router.get(
-  "/games/:appId/achievements/:playerId",
+  "/game/:appId/achievements/:playerId",
   steamController.getPlayerAchievementsByGame
 );
 
