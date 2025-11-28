@@ -5,6 +5,6 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/api/game/achievements", achievementsRoutes);
+app.use("/api", achievementsRoutes);
 
 module.exports = app;

@@ -1,4 +1,5 @@
 const axios = require("axios");
+const e = require("express");
 
 async function getPlayerAchievementsByGame(steamId, appId, language) {
   try {
@@ -16,35 +17,22 @@ async function getPlayerAchievementsByGame(steamId, appId, language) {
       },
     });
 
-    if (data.playerstats?.error) {
-      const msg = data.playerstats.error;
-
-      if (msg.includes("Steam")) {
-        return {
-          success: false,
-          type: "INVALID_STEAMID",
-          message: "Invalid or private SteamID.",
-        };
-      }
-
-      if (msg.includes("stats")) {
-        return {
-          success: false,
-          type: "INVALID_APPID",
-          message: "Invalid AppID or this game does not support stats.",
-        };
-      }
+    if (!data.playerstats?.success) {
+      return {
+        success: false,
+        achievements: [],
+      };
     }
 
     return {
       success: true,
-      achievements: data.playerstats.achievements,
+      achievements: data.playerstats.achievements || [],
     };
+
   } catch (error) {
     return {
       success: false,
-      type: "INVALID_STEAMID",
-      message: "Private profile or invalid format.",
+      achievements: [],
     };
   }
 }
@@ -64,17 +52,9 @@ async function getGameAchievements(appId, language) {
       },
     });
 
-    if (!data.response) {
-      return {
-        success: false,
-        type: "INVALID_APPID",
-        message: "Invalid AppID.",
-      };
-    }
+    const achievements = data.response.achievements;
 
-    const achievements = data.response?.achievements;
-
-    if (!achievements || achievements.length === 0) {
+    if (!achievements) {
       return {
         success: false,
         type: "NO_ACHIEVEMENTS",
@@ -86,6 +66,7 @@ async function getGameAchievements(appId, language) {
       success: true,
       achievements,
     };
+
   } catch (error) {
     return {
       success: false,
@@ -97,6 +78,7 @@ async function getGameAchievements(appId, language) {
 
 async function getAchievementsInfo(steamId, appId, language) {
   try {
+
     const gameAchievementsResult = await getGameAchievements(appId, language);
 
     if (!gameAchievementsResult.success) {
@@ -115,46 +97,52 @@ async function getAchievementsInfo(steamId, appId, language) {
       language
     );
 
-    if (!playerStatsResult.success) {
-      return {
-        success: false,
-        type: playerStatsResult.type,
-        message: playerStatsResult.message,
-      };
-    }
-
-    const playerStats = playerStatsResult.achievements;
-
-    const totalAchievements = gameAchievements.length;
-    const achieved = playerStats.filter((achievement) => achievement.achieved);
-    const notAchieved = playerStats.filter(
-      (achievement) => !achievement.achieved
-    );
-
-    const progress = (achieved.length / totalAchievements) * 100;
+    const playerStats = playerStatsResult.achievements || [];
 
     const merged = gameAchievements.map((gameAchievement) => {
       const playerAchievement = playerStats.find(
-        (playerAchievement) =>
-          playerAchievement.apiname === gameAchievement.internal_name
+        (p) => p.apiname === gameAchievement.internal_name
       );
-      const { icon_gray, ...rest } = gameAchievement;
+
       return {
-        ...rest,
-        achieved: playerAchievement?.achieved || 0,
+        name: gameAchievement.localized_name,
+        description: gameAchievement.localized_desc,
+        icon: gameAchievement.icon,
+        hidden: gameAchievement.hidden,
+        player_percent_unlocked: gameAchievement.player_percent_unlocked,
+        achieved: playerAchievement?.achieved === 1 ? true : false,
       };
     });
+
+    merged.sort((a, b) => {
+      if (a.achieved !== b.achieved) {
+        return a.achieved ? -1 : 1;
+      }
+      if (a.hidden !== b.hidden) {
+        return a.hidden ? 1 : -1;
+      }
+      const pa = parseFloat(a.player_percent_unlocked) || 0;
+      const pb = parseFloat(b.player_percent_unlocked) || 0;
+
+      return pb - pa;
+    });
+
+    const totalAchievements = gameAchievements.length;
+    const achieved = merged.filter((a) => a.achieved).length;
+    const notAchieved = totalAchievements - achieved;
+    const progress = ((achieved / totalAchievements) * 100).toFixed(2);
 
     return {
       success: true,
       data: {
         totalAchievements,
-        achieved: achieved.length,
-        notAchieved: notAchieved.length,
+        achieved,
+        notAchieved,
         progress,
         achievements: merged,
       },
     };
+
   } catch (error) {
     return {
       success: false,
