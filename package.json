@@ -1,0 +1,39 @@
+{
+  "name": "gameshelf-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GustavoDeltta/gameshelf-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GustavoDeltta/gameshelf-backend/issues"
+  },
+  "homepage": "https://github.com/GustavoDeltta/gameshelf-backend#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "firebase-admin": "^12.1.0",
+    "jest": "^30.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.7.0",
+    "passport-steam": "^1.0.18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0"
+  }
+}
