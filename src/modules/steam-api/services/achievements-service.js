@@ -131,7 +131,7 @@ async function getAchievementsInfo(steamId, appId, language) {
         name: gameAchievement.localized_name,
         description: gameAchievement.localized_desc,
         icon: achieved ? gameAchievement.icon : gameAchievement.icongray,
-        hidden: gameAchievement.hidden,
+        hidden: gameAchievement.hidden === 1,
         player_percent_unlocked: gameAchievement.player_percent_unlocked,
         achieved,
         unlocktime: playerAchievement?.unlocktime || null,
