@@ -1,15 +1,12 @@
 const { getGameInfo } = require("../services/gameinfo-service");
 
+
 async function gameInfoController(req, res) {
   const { appId } = req.params;
+  const language = req.query.language;
+  const steamid = req.query.steamid;
 
-  const result = await getGameInfo(appId);
-
-  if (!result.success) {
-    return res.status(404).json(result);
-  }
-
-  return res.json(result);
+  return res.json(await getGameInfo(appId, language, steamid));
 }
 
 module.exports = { gameInfoController };

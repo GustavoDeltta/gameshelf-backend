@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { getAchievementsHighlights } = require("./achievements-service");
 
 async function getSteamRatings(appId) {
   try {
@@ -38,11 +39,19 @@ async function getSteamRatings(appId) {
   }
 }
 
-async function getGameInfo(appId, language) {
+async function getGameInfo(appId, language, steamId) {
   try {
+    if (!steamId) steamId = 0;
+
     const url = `https://store.steampowered.com/api/appdetails?appids=${appId}&l=${language}`;
 
-    const response = await axios.get(url);
+    const promises = [axios.get(url), getSteamRatings(appId), getAchievementsHighlights(steamId, appId, language)];
+
+    const results = await Promise.all(promises);
+
+    const response = results[0];
+    const steamRatings = results[1];
+    const achievementHighlights = results[2];
 
     if (
       !response.data ||
@@ -56,27 +65,32 @@ async function getGameInfo(appId, language) {
 
     const cover_url = `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
 
-    const steamRatings = await getSteamRatings(appId);
+    const responseData = {
+      type: data.type,
+      cover: cover_url,
+      background: data.header_image,
+      name: data.name,
+      description: data.short_description,
+      developers: data.developers,
+      publishers: data.publishers,
+      releaseDate: data.release_date,
+      categories: data.categories,
+      genres: data.genres,
+      dlcs: data.dlc ?? [],
+      achievementHighlights: achievementHighlights,
+      platforms: data.platforms,
+      screenshots: data.screenshots ?? [],
+      steamRatings: steamRatings.data,
+      languages: data.supported_languages,
+    };
+
+    if (achievementHighlights && achievementHighlights.success) {
+      responseData.achievementHighlights = achievementHighlights.data;
+    }
 
     return {
       success: true,
-      data: {
-        type: data.type,
-        cover: cover_url,
-        background: data.header_image,
-        name: data.name,
-        description: data.short_description,
-        developers: data.developers,
-        publishers: data.publishers,
-        releaseDate: data.release_date,
-        categories: data.categories,
-        genres: data.genres,
-        dlcs: data.dlc ?? [],
-        platforms: data.platforms,
-        screenshots: data.screenshots ?? [],
-        steamRatings: steamRatings.data,
-        languages: data.supported_languages,
-      },
+      data: responseData,
     };
   } catch (err) {
     console.log(err);
