@@ -31,6 +31,8 @@ async function getPlayerAchievementsByGame(steamId, appId, language) {
           apiname: a.apiname,
           achieved: a.achieved,
           unlocktime: a.unlocktime,
+          name: a.name,
+          description: a.description || null,
         })) || [],
     };
   } catch (error) {
@@ -45,24 +47,18 @@ async function getGameAchievements(appId, language) {
   try {
     const apiKey = process.env.STEAM_API_KEY;
 
-    const schemaUrl =
-      "https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/";
-    const percentagesUrl =
-      "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/";
+    const url =
+      "https://api.steampowered.com/IPlayerService/GetGameAchievements/v1/";
 
-    const [schemaResponse, percentagesResponse] = await Promise.all([
-      axios.get(schemaUrl, {
-        params: { key: apiKey, appid: appId, l: language },
-      }),
-      axios.get(percentagesUrl, { params: { gameid: appId } }),
-    ]);
+    const { data } = await axios.get(url, {
+      params: {
+        key: apiKey,
+        appid: appId,
+        language: language,
+      },
+    });
 
-    const schemaAchievements =
-      schemaResponse.data.game.availableGameStats.achievements;
-    const percentageAchievements =
-      percentagesResponse.data.achievementpercentages.achievements;
-
-    if (!schemaAchievements) {
+    if (!data.response?.achievements) {
       return {
         success: false,
         type: "NO_ACHIEVEMENTS",
@@ -70,26 +66,21 @@ async function getGameAchievements(appId, language) {
       };
     }
 
-    const achievements = schemaAchievements.map((schema) => {
-      const percentageData = percentageAchievements.find(
-        (p) => p.name === schema.name
-      );
-      return {
-        internal_name: schema.name,
-        localized_name: schema.displayName,
-        localized_desc: schema.description,
-        icon: schema.icon.split("/").pop(),
-        icongray: schema.icongray.split("/").pop(),
-        hidden: schema.hidden,
-        player_percent_unlocked: percentageData?.percent,
-      };
-    });
+    const achievements = data.response.achievements.map((achievement) => ({
+      internal_name: achievement.internal_name,
+      localized_name: achievement.localized_name,
+      localized_desc: achievement.localized_desc || null,
+      icon: achievement.icon,
+      hidden: achievement.hidden,
+      player_percent_unlocked: achievement.player_percent_unlocked,
+    }));
 
     return {
       success: true,
       achievements,
     };
   } catch (error) {
+    console.error("Steam API Response:", error.response?.data);
     return {
       success: false,
       type: "API_ERROR",
@@ -130,8 +121,8 @@ async function getAchievementsInfo(steamId, appId, language) {
       return {
         name: gameAchievement.localized_name,
         description: gameAchievement.localized_desc,
-        icon: achieved ? gameAchievement.icon : gameAchievement.icongray,
-        hidden: gameAchievement.hidden === 1,
+        icon: gameAchievement.icon,
+        hidden: gameAchievement.hidden,
         player_percent_unlocked: gameAchievement.player_percent_unlocked,
         achieved,
         unlocktime: playerAchievement?.unlocktime || null,
@@ -154,7 +145,7 @@ async function getAchievementsInfo(steamId, appId, language) {
     const totalAchievements = gameAchievements.length;
     const achieved = merged.filter((a) => a.achieved).length;
     const notAchieved = totalAchievements - achieved;
-    const progress = ((achieved / totalAchievements) * 100).toFixed(2);
+    const progress = parseFloat(((achieved / totalAchievements) * 100).toFixed(1));
 
     return {
       success: true,
