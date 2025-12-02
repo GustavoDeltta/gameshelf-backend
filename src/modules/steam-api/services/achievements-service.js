@@ -78,8 +78,8 @@ async function getGameAchievements(appId, language) {
         internal_name: schema.name,
         localized_name: schema.displayName,
         localized_desc: schema.description,
-        icon: schema.icon,
-        icongray: schema.icongray,
+        icon: schema.icon.split("/").pop(),
+        icongray: schema.icongray.split("/").pop(),
         hidden: schema.hidden,
         player_percent_unlocked: percentageData?.percent,
       };
