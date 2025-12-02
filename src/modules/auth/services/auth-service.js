@@ -1,6 +1,6 @@
 const { auth } = require("../../../core/config/firebase");
-const userRepository = require("../repositories/userRepository");
-const User = require("../models/User");
+const userRepository = require("../repositories/user-repository");
+const User = require("../models/user");
 const axios = require("axios");
 const { refreshToken } = require("firebase-admin/app");
 const steamUserService = require("../../steam-api/services/steamUserService");

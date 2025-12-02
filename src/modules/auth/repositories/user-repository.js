@@ -1,5 +1,5 @@
 const { db } = require("../../../core/config/firebase");
-const User = require("../models/User");
+const User = require("../models/user");
 
 class UserRepository {
   async save(userInstance) {
