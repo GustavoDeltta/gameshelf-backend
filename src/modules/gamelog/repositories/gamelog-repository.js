@@ -24,6 +24,14 @@ class GameLogRepository {
     return GameLog.fromFirestore(doc.id, doc.data());
   }
 
+  async countPlayingByGameId(gameId) {
+    const snapshot = await gameLogCollection
+      .where("gameId", "==", gameId)
+      .where("status", "==", "Playing")
+      .get();
+    return snapshot.size;
+  }
+
   async findByUser(userId) {
     const snapshot = await gameLogCollection.where("userId", "==", userId).get();
     return snapshot.docs.map((doc) => GameLog.fromFirestore(doc.id, doc.data()));

@@ -21,6 +21,15 @@ class UserRepository {
     return User.fromFirestore(userDoc.id, userDoc.data());
   }
 
+  async findBySteamId(steamId) {
+    const usersRef = db.collection("users");
+    const snapshot = await usersRef.where("steamId", "==", steamId).get();
+    if (snapshot.empty) {
+      return null;
+    }
+    return snapshot.docs[0].id;
+  }
+
   async update(uid, data) {
     await db.collection("users").doc(uid).update(data);
   }

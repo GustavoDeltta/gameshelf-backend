@@ -1,5 +1,7 @@
 const axios = require("axios");
 const { getAchievementsHighlights } = require("./achievements-service");
+const userRepository = require("../../auth/repositories/user-repository");
+const gameLogRepository = require("../../gamelog/repositories/gamelog-repository");
 
 async function getSteamRatings(appId) {
   try {
@@ -41,17 +43,30 @@ async function getSteamRatings(appId) {
 
 async function getGameInfo(appId, language, steamId) {
   try {
-    if (!steamId) steamId = 0;
-
     const url = `https://store.steampowered.com/api/appdetails?appids=${appId}&l=${language}`;
 
-    const promises = [axios.get(url), getSteamRatings(appId), getAchievementsHighlights(steamId, appId, language)];
+    const promises = [
+      axios.get(url),
+      getSteamRatings(appId),
+      getAchievementsHighlights(steamId, appId, language),
+      steamId
+        ? userRepository.findBySteamId(steamId).then((userId) => {
+            if (userId) {
+              return gameLogRepository.findByUserAndGame(userId, appId);
+            }
+            return null;
+          })
+        : Promise.resolve(null),
+      gameLogRepository.countPlayingByGameId(appId),
+    ];
 
     const results = await Promise.all(promises);
 
     const response = results[0];
     const steamRatings = results[1];
     const achievementHighlights = results[2];
+    const userGameLog = results[3];
+    const playingCount = results[4];
 
     if (
       !response.data ||
@@ -82,6 +97,10 @@ async function getGameInfo(appId, language, steamId) {
       screenshots: data.screenshots ?? [],
       steamRatings: steamRatings.data,
       languages: data.supported_languages,
+      userGameLog: userGameLog
+        ? { id: userGameLog.id, status: userGameLog.status }
+        : null,
+      playingCount: playingCount,
     };
 
     if (achievementHighlights && achievementHighlights.success) {
