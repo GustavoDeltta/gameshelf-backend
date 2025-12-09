@@ -3,6 +3,7 @@ const { getAchievementsHighlights } = require("./achievements-service");
 const userRepository = require("../../auth/repositories/user-repository");
 const gameLogRepository = require("../../gamelog/repositories/gamelog-repository");
 const reviewService = require("../../reviews/services/review-service");
+const gamelistRepository = require("../../gamelists/repositories/gamelist-repository");
 
 async function getSteamRatings(appId) {
   try {
@@ -63,6 +64,8 @@ async function getGameInfo(appId, language, steamId) {
       userId
         ? reviewService.getReview(userId, appId)
         : Promise.resolve(null),
+      gamelistRepository.findByGameId(appId),
+      gamelistRepository.findByGameId(appId, 3),
     ];
 
     const results = await Promise.all(promises);
@@ -74,6 +77,8 @@ async function getGameInfo(appId, language, steamId) {
     const playingCount = results[4];
     const { count: reviewsCount, reviews } = results[5];
     const userReview = results[6];
+    const allGameLists = results[7];
+    const recentGameLists = results[8];
 
     if (
       !response.data ||
@@ -111,6 +116,8 @@ async function getGameInfo(appId, language, steamId) {
       userReview: userReview,
       reviews: reviews,
       reviewsCount: reviewsCount,
+      gameListsCount: allGameLists.length,
+      gameLists: recentGameLists,
     };
 
     if (achievementHighlights && achievementHighlights.success) {
