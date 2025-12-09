@@ -2,6 +2,7 @@ const axios = require("axios");
 const { getAchievementsHighlights } = require("./achievements-service");
 const userRepository = require("../../auth/repositories/user-repository");
 const gameLogRepository = require("../../gamelog/repositories/gamelog-repository");
+const reviewService = require("../../reviews/services/review-service");
 
 async function getSteamRatings(appId) {
   try {
@@ -44,20 +45,24 @@ async function getSteamRatings(appId) {
 async function getGameInfo(appId, language, steamId) {
   try {
     const url = `https://store.steampowered.com/api/appdetails?appids=${appId}&l=${language}`;
+    let userId = null;
+
+    if (steamId) {
+      userId = await userRepository.findBySteamId(steamId);
+    }
 
     const promises = [
       axios.get(url),
       getSteamRatings(appId),
       getAchievementsHighlights(steamId, appId, language),
-      steamId
-        ? userRepository.findBySteamId(steamId).then((userId) => {
-            if (userId) {
-              return gameLogRepository.findByUserAndGame(userId, appId);
-            }
-            return null;
-          })
+      userId
+        ? gameLogRepository.findByUserAndGame(userId, appId)
         : Promise.resolve(null),
       gameLogRepository.countPlayingByGameId(appId),
+      reviewService.getGameReviewsWithCount(appId, 3),
+      userId
+        ? reviewService.getReview(userId, appId)
+        : Promise.resolve(null),
     ];
 
     const results = await Promise.all(promises);
@@ -67,6 +72,8 @@ async function getGameInfo(appId, language, steamId) {
     const achievementHighlights = results[2];
     const userGameLog = results[3];
     const playingCount = results[4];
+    const { count: reviewsCount, reviews } = results[5];
+    const userReview = results[6];
 
     if (
       !response.data ||
@@ -101,6 +108,9 @@ async function getGameInfo(appId, language, steamId) {
         ? { id: userGameLog.id, status: userGameLog.status }
         : null,
       playingCount: playingCount,
+      userReview: userReview,
+      reviews: reviews,
+      reviewsCount: reviewsCount,
     };
 
     if (achievementHighlights && achievementHighlights.success) {
