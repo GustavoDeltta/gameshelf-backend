@@ -3,6 +3,7 @@ const achievementsRoutes = require("./modules/steam-api/routes/achievements-rout
 const gameInfoRoutes = require("./modules/steam-api/routes/gameinfo-routes");
 const authRoutes = require("./modules/auth/routes/auth-routes");
 const gamelogRoutes = require("./modules/gamelog/routes/gamelog-routes");
+const reviewRoutes = require("./modules/reviews/routes/review-routes");
 
 const app = express();
 
@@ -12,5 +13,6 @@ app.use("/api", achievementsRoutes);
 app.use("/api", gameInfoRoutes);
 app.use("/api", authRoutes);
 app.use("/api/gamelog", gamelogRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 module.exports = app;
