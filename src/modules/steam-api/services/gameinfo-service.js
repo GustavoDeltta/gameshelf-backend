@@ -66,6 +66,7 @@ async function getGameInfo(appId, language, steamId) {
         : Promise.resolve(null),
       gamelistRepository.findByGameId(appId),
       gamelistRepository.findByGameId(appId, 3),
+      reviewService.getGameRatings(appId),
     ];
 
     const results = await Promise.all(promises);
@@ -79,6 +80,7 @@ async function getGameInfo(appId, language, steamId) {
     const userReview = results[6];
     const allGameLists = results[7];
     const recentGameLists = results[8];
+    const gameRatings = results[9];
 
     if (
       !response.data ||
@@ -108,6 +110,7 @@ async function getGameInfo(appId, language, steamId) {
       platforms: data.platforms,
       screenshots: data.screenshots ?? [],
       steamRatings: steamRatings.data,
+      gameRatings: gameRatings,
       languages: data.supported_languages,
       userGameLog: userGameLog
         ? { id: userGameLog.id, status: userGameLog.status }

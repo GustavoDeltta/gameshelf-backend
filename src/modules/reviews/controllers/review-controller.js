@@ -63,6 +63,16 @@ class ReviewController {
     }
   }
 
+  async getGameRatings(req, res) {
+    const { gameId } = req.params;
+    try {
+      const ratings = await reviewService.getGameRatings(gameId);
+      res.status(200).json(ratings);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
   async deleteReview(req, res) {
     const { gameId } = req.params;
     const { uid: userId } = req.user;

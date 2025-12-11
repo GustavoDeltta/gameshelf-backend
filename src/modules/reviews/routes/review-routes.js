@@ -5,6 +5,7 @@ const authMiddleware = require("../../../core/middlewares/auth-middleware");
 
 // Public routes
 router.get("/game/:gameId", reviewController.getGameReviews);
+router.get("/game/:gameId/ratings", reviewController.getGameRatings);
 router.get("/user/:userId", reviewController.getUserReviews);
 
 // Private routes
