@@ -13,10 +13,10 @@ class Review {
     this.gameId = gameId;
     this.rating = rating; // number (e.g. 3.5)
     this.text = text;
-    this.liked = liked; // boolean
-    this.containsSpoilers = containsSpoilers; // boolean
+    this.liked = liked ?? false; // boolean
+    this.containsSpoilers = containsSpoilers ?? false; // boolean
     this.gameLogStatus = gameLogStatus; // 'jogando', 'finalizado', 'backlog', or null
-    this.achievementsCompleted = achievementsCompleted; // boolean
+    this.achievementsCompleted = achievementsCompleted ?? false; // boolean
     this.createdAt = new Date().toISOString();
     this.updatedAt = new Date().toISOString();
   }
