@@ -33,11 +33,24 @@ class AuthService {
         password,
         returnSecureToken: true,
       });
+
+      const user = await userRepository.findByUid(response.data.localId);
+
+      const formattedUser = {
+        uid: user.uid,
+        username: user.username,
+        steamId: user.steamId,
+        ownedGames: user.ownedGames.map((game) => game.appid),
+        role: user.role,
+      };
+
       return {
-        token: response.data.idToken,
-        uid: response.data.localId,
-        refreshToken: response.data.refreshToken,
-        expiresIn: response.data.expiresIn,
+        user: formattedUser,
+        session: {
+          token: response.data.idToken,
+          refreshToken: response.data.refreshToken,
+          expiresIn: response.data.expiresIn,
+        },
       };
     } catch (error) {
       throw new Error("Credenciais inválidas ou erro no login.");

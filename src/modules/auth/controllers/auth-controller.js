@@ -20,10 +20,8 @@ class AuthController {
   async login(req, res) {
     const { email, password } = req.body;
     try {
-      const session = await authService.login(email, password);
-      return res
-        .status(200)
-        .json({ message: "User logged in successfully", session });
+      const { user, session } = await authService.login(email, password);
+      return res.status(200).json({ ...user, ...session });
     } catch (error) {
       return res.status(401).json({ message: error.message });
     }
