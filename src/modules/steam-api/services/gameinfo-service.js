@@ -51,15 +51,16 @@ async function getGameInfo(appId, language, steamId) {
     if (steamId) {
       userId = await userRepository.findBySteamId(steamId);
     }
+    const appIdAsNumber = parseInt(appId, 10);
 
     const promises = [
       axios.get(url),
       getSteamRatings(appId),
       getAchievementsHighlights(steamId, appId, language),
       userId
-        ? gameLogRepository.findByUserAndGame(userId, appId)
+        ? gameLogRepository.findByUserAndGame(userId, appIdAsNumber)
         : Promise.resolve(null),
-      gameLogRepository.countPlayingByGameId(appId),
+      gameLogRepository.countPlayingByGameId(appIdAsNumber),
       reviewService.getGameReviewsWithCount(appId, 3),
       userId
         ? reviewService.getReview(userId, appId)
